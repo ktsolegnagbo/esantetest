@@ -1,0 +1,129 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Integrate Health</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f5f7fa;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .logo {
+            margin-bottom: 20px;
+        }
+
+        .welcome-box {
+            background-color: #fff;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            width: 100%;
+        }
+
+        h1 {
+            font-size: 2em;
+            color: #4a90e2;
+            margin-bottom: 10px;
+        }
+
+        p {
+            font-size: 1.2em;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .start-button {
+            margin-top: 20px;
+            background-color: #4a90e2;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 5px;
+            font-size: 1em;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            text-decoration: none; /* Remove underline from link */
+            display: inline-block; /* Make the anchor behave like a button */
+        }
+
+        .start-button:hover {
+            background-color: #357ABD;
+        }
+
+        .start-button:active {
+            transform: scale(0.98);
+        }
+
+        ul {
+            list-style-type: none; /* Remove default list styling */
+            padding: 0; /* Remove default padding */
+            text-align: left; /* Align text to the left for better readability */
+            margin: 20px 0; /* Add margin for spacing */
+        }
+
+        li {
+            margin-bottom: 10px; /* Add space between list items */
+        }
+
+        .instruction {
+            margin-left: 20px;
+        }
+
+        .instruction b {
+            color: blue;
+        }
+
+    </style>
+</head>
+<body>
+    <div class="container">
+        <img src="{% static 'logo/logo.png' %}" alt="Integrate Health Logo" class="logo">
+        <div class="welcome-box">
+            <p style="font-size: 25px!important;">Durée: <b>{{ timer }}</b></p>
+            <h1>Bienvenue sur IH-TEST</h1>
+            <br>
+            <p><b id="username">{{ last_name }} {{ first_name }}</b></p>
+            <p><b id="email">{{ email }}</b></p>
+            <br>
+
+            <ul>
+                <li><h3>Vous aurez droit à 45 questions</h3></li>
+                <li class="instruction">- Questions (1 à 10) pour le <b>Python</b></li>
+                <li class="instruction">- Questions (11 à 20) pour le <b>NodeJs</b></li>
+                <li class="instruction">- Questions (21 à 30) pour le <b>PostgresSQL</b></li>
+                <li class="instruction">- Questions (31 à 35) pour le <b>XLSForm</b></li>
+                <li class="instruction">- Questions (36 à 45) pour <b>Questions Bonus</b></li>
+            </ul>
+
+            <h2 style="color: Red;">Veuillez Sauvegarder Vos Reponses Pour Ne Pas Les Perdre</h2>
+
+            <p>
+                <a href="{% url 'question_view' 1 %}" class="start-button">Démarrer Le Test Pratique</a>
+            </p>
+        </div>
+    </div>
+</body>
+</html>

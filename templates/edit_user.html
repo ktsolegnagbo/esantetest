@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Éditer Utilisateur: {{ user.username }}</title>
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+        body {
+            background-color: #f8f9fa; /* Light background color */
+        }
+        .container {
+            max-width: 800px; /* Max width for better readability */
+        }
+        .card {
+            border-radius: 10px; /* Rounded corners for cards */
+        }
+        .card-header {
+            background-color: #007bff; /* Bootstrap primary color */
+            color: white;
+            font-weight: bold;
+            border-top-left-radius: 10px;
+            border-top-right-radius: 10px;
+        }
+        .btn-success {
+            background-color: #28a745; /* Bootstrap success color */
+            border-color: #28a745;
+        }
+        .btn-secondary {
+            color: #fff;
+            background-color: #6c757d; /* Bootstrap secondary color */
+            border-color: #6c757d;
+        }
+        .btn:hover {
+            filter: brightness(90%); /* Hover effect */
+        }
+        .form-control {
+            border-radius: 5px; /* Rounded input fields */
+        }
+        .form-group {
+            margin-bottom: 1.5rem; /* Space between form groups */
+        }
+        .footer {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container mt-5">
+        <h2 class="mb-4 text-center">Éditer Utilisateur: {{ user.username }}</h2>
+        
+        <form method="POST">
+            {% csrf_token %}
+            
+            <!-- User Form -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    Informations de l'utilisateur
+                </div>
+                <div class="card-body">
+                    {{ user_form.as_p }}
+                </div>
+            </div>
+            
+            <!-- UserResponse Formset -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    Réponses de l'utilisateur
+                </div>
+                <div class="card-body">
+                    {{ response_formset.management_form }}
+                    {% for form in response_formset %}
+                        <div class="form-group">
+                            {{ form.as_p }}
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+            
+            <!-- Submit Buttons -->
+            <div class="text-center">
+                <button type="submit" class="btn btn-success">Sauvegarder</button>
+                <a href="{% url 'user_list' %}" class="btn btn-secondary">Annuler</a>
+            </div>
+        </form>
+
+        <div class="footer">
+            <p>&copy; {{ current_year }} Mon Application</p>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS and jQuery -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>

@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ question.title }}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <style>
+
+
+        .container {
+            background-color: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            /* text-align: center; */
+        }
+
+        h2 {
+            font-size: 1.5em;
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        input[type="radio"] {
+            appearance: none; /* Remove default styles */
+            transform: scale(1.2); 
+            width: 20px; /* Set width */
+            height: 20px; /* Set height */
+            border: 1px solid rgb(191, 191, 191); /* Border color */
+            border-radius: 50%; /* Make it circular */
+            outline: none; /* Remove outline */
+            cursor: pointer; /* Change cursor on hover */
+            transition: background-color 0.2s ease; /* Transition for background color */
+            margin: 10px 10px 10px 0px; /* Space between radio and label */
+        }
+
+        input[type="radio"]:checked, input[type="checkbox"]:checked {
+            background-color: #007bff;
+            border-color: black;
+        }
+
+        /* Zoom in the radio button */
+        /* input[type="radio"]:hover, input[type="checkbox"]:hover {
+            transform: scale(1.2); 
+        } */
+
+        input[type="checkbox"] {
+            appearance: none; /* Remove default styles */
+            transform: scale(1.2); 
+            width: 20px; /* Set width */
+            height: 20px; /* Set height */
+            border: 1px solid rgb(191, 191, 191); 
+            border-radius: 5%; /* Make it circular */
+            outline: none; /* Remove outline */
+            cursor: pointer; /* Change cursor on hover */
+            transition: background-color 0.2s ease; /* Transition for background color */
+            margin: 10px 10px 10px 0px; /* Space between radio and label */
+        }
+
+        label {
+            font-family: Arial, sans-serif; /* Font style */
+            font-size: 20px; /* Font size */
+            color: #333; /* Text color */
+            display: flex; /* Use flex for alignment */
+            align-items: center; /* Center vertically */
+            cursor: pointer; /* Change cursor on hover */
+        }
+        .editor {
+            border: 1px solid #ced4da;
+            border-radius: 5px;
+            height: 300px;
+        }
+        .output {
+            background-color: #333;
+            color: #fff;
+            padding: 10px;
+            height: 200px;
+            overflow: auto;
+            margin-top: 10px;
+        }
+        /* Empêcher la sélection de texte */
+        .no-copy {
+            user-select: none;
+            -webkit-user-select: none;  /* Chrome, Safari */
+            -moz-user-select: none;     /* Firefox */
+            -ms-user-select: none;      /* Internet Explorer/Edge */
+        }
+        .quetion-type {
+            zoom: 1.3;
+        }
+    </style>
+</head>
+<body>
+ 
+    <div class="container mt-5">
+        <div style="text-align: center; align-items: center; padding-left: 12px;" class="row mb-3">
+            {% for qt in questions %}
+                <a  href="{% url 'question_view' qt.uid %}" style="margin: 5px; padding: 0px; width: 30px;" 
+                     class="col-md-1 {% if question.uid == qt.uid %}btn btn-success quetion-type{% else %}btn btn-primary{% endif %}">
+                    {{ qt.uid }}
+                </a>
+            {% endfor %}
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <b style="font-size: 20px;" class="no-copy">{{ question.title }}</b>
+                <a style="float: right;" href="{% url 'logout' %}" class="btn btn-danger">Me déconnecter</a>
+            </div>
+            <div class="card-body">
+                <h4 class="no-copy">{{ question.text }}</h4>
+                <form id="questions-form" class="questions-form" method="POST" action="">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        {% if question.question_type == 'python' or question.question_type == 'sql' or question.question_type == 'nodejs' %}
+                            <textarea id="answer" name="answer" class="form-control" style="display: none;"></textarea>
+                            <div id="editor" class="editor mb-4"></div>
+                            {% if request.user.is_superuser  %}
+                                <textarea id="correction" class="form-control mt-3 mb-4" style="display: block;">{{ question.correction }}</textarea>
+                            {% endif %}
+                            <button type="button" class="btn btn-secondary" id="runCode">Excécuter Le Code</button>
+                            <h3 class="mt-4">Output</h3>
+                            <div class="output" id="output"></div>
+                        {% else %}
+                            {{ form.as_p }}
+                            {% if request.user.is_superuser  %}
+                                <input type="text" value="{{ question.correction }}" class="form-control mt-3 mb-4" style="display: block;">
+                            {% endif %}
+                        {% endif %}
+                    </div>
+                    <input type="hidden" id="time_taken" name="time_taken" value="">
+                    <br>
+                    <a style="float: right;" id="submit-btn" href="" class="no-copy btn btn-primary">Sauvegarder</a>
+                </form>
+                <br>
+                <div>Temps restant: <span style="color: red; font-weight: bold;" id="timer">{{ remaining_time }}</span> seconds</div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.1/codemirror.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.1/mode/python/python.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.1/mode/javascript/javascript.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.1/mode/sql/sql.min.js"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/monaco-editor/min/vs/loader.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+    <script>
+         $(document).ready(function() {
+
+        let timeLimit = parseInt('{{ remaining_time }}');
+        const language = '{{ question.question_type }}';
+        const isCodeMode = ['python', 'nodejs', 'sql'].includes(language);
+        
+        const timer = setInterval(() => {
+            document.getElementById("timer").textContent = timeLimit;
+            timeLimit -= 1;
+            // Save the current timer value to the server via an AJAX request
+            
+            fetch("{% url 'save_timer' question.uid %}", {
+                method: "POST",
+                headers: {
+                    "X-CSRFToken": "{{ csrf_token }}", // CSRF protection
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({ remaining_time: timeLimit })
+            });
+
+            // Automatically submit the form when time runs out
+            if (timeLimit < 0) {
+                clearInterval(timer); // Stop the timer
+                document.getElementById("submit-btn").click(); // Trigger form submission
+            }
+        }, 1000); // Interval set to 1 second
+
+        // Check if the question type requires a code editor
+        let editor;
+
+        if (isCodeMode == true){
+            
+            // Configure and load Monaco Editor
+            require.config({ paths: { 'vs': 'https://cdn.jsdelivr.net/npm/monaco-editor/min/vs' }});
+            require(['vs/editor/editor.main'], function () {
+                editor = monaco.editor.create(document.getElementById('editor'), {
+                    value: formatData('{{ question.default|escapejs }}', language),
+                    language: language === 'nodejs' ? 'javascript' : language,
+                    theme: 'vs-dark'
+                });
+            });
+
+            // Event listener for the "Run Code" button
+            document.getElementById('runCode').addEventListener('click', function () {
+                document.getElementById('output').textContent = 'Running code...';
+
+                // AJAX request to send code to the server and receive the output
+                $.ajax({
+                    url: '/run_code/',  // URL for the backend processing the code
+                    method: 'POST',
+                    data: JSON.stringify({ code: editor.getValue(), language: '{{ question.question_type }}' }),
+                    contentType: 'application/json',
+                    success: function (response) {
+                        document.getElementById('output').textContent = response.output;
+                    },
+                    error: function (xhr) {
+                        document.getElementById('output').textContent = 'Error: ' + xhr.responseText;
+                    }
+                });
+            });
+
+
+            // Function to format data, returning default if the value is empty or None
+            function formatData(data, language) {
+                if (data !== '' && data !== null && data !== 'None' && data !== '-' && data !== ' ') {
+                    return data;
+                } else {
+                    if (language === 'python') {
+                        return '# Write your Python code here\n';
+                    } else if (language === 'nodejs') {
+                        return '// Write your JavaScript code here\n';
+                    } else if(language === 'sql') {
+                        return '/* Write your SQL query here */\n'
+                    } else {
+                        return '';
+                    }
+                }
+            }
+
+        }
+
+           
+        $('#submit-btn').click(function(e) {
+            e.preventDefault();
+            var form = $(this).closest(".questions-form");
+            const actionUrl = "{% url 'question_view' 0 %}".replace('/0/','/{{ question_id }}/');
+
+            const timeTaken = parseInt('{{ remaining_time }}') - timeLimit;
+            $('#time_taken').val(timeTaken);
+            if (isCodeMode == true){
+                $('#answer').val(editor.getValue());
+            }
+            form.attr('action', actionUrl);
+            form.submit();
+            return true;
+        });
+    });
+    </script>
+
+    <script>
+        // Désactiver la copie via JavaScript
+        document.addEventListener('DOMContentLoaded', function() {
+            document.addEventListener('copy', function(e) {
+                // Empêcher l'action de copie
+                if (e.target.classList.contains('no-copy')) {
+                    e.preventDefault();
+                }
+            });
+
+            // Empêcher le clic-droit sur les éléments avec la classe "no-copy"
+            document.querySelectorAll('.no-copy').forEach(function(element) {
+                element.addEventListener('contextmenu', function(e) {
+                    e.preventDefault(); // Empêcher le clic-droit
+                });
+            });
+        });
+    </script>
+
+</body>
+</html>
